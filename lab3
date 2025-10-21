@@ -1,0 +1,49 @@
+3.zdk
+A)  alokacija
+    inicijalizacija vrijednosti
+    for petlja - uvjet: strcmp(q->surname,surname)==0;
+    newPerson->next = q->next
+    q->next = newPerson
+
+B)  alokacija
+    inicijalizacija vrijednosti
+    uvodimo temporary varijablu Position previous = head->next ili q
+    q = prev->next
+    for petlja - uvjet: strcmp(q->surname,surname)==0;
+    prev = q
+    q = q->next
+    prev->next = newPerson
+    newPerson->next = q
+
+C)  q pokazivac od heada
+    Position p 
+    Position temp
+    Position sorted postavljamo na NULL
+    q postavljamo na head (q=head), p neka bude sljedeci clan (p=q->next)
+   
+    provjera prazne liste
+    
+    provjera je li veci p->lastName, p->next->lastName  (strcmp(p->lastName,p->next->lastName)>0)
+    ako nije:
+    q=q->next
+    p=p->next
+    
+    ponovna provjera je li veci p->lastName, p->next->lastName  (strcmp(p->lastName,p->next->lastName)>0)
+    ako je:
+    temp=p->next
+    q->next=temp
+    p->next=temp->next
+    temp->next=p
+    q=q->next
+    
+    nakon zamjene provjera je li p->next jednako sorted (if(p->next == sorted))
+    sorted=p
+    
+    
+D)  otvoriti datoteku
+    fprintf
+    zatvorit datoteku
+
+E)  otvorit datoteku
+    fscanf
+    zatvorit
