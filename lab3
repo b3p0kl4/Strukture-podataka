@@ -1,3 +1,226 @@
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct person {
+	char name[50];
+	char surname[50];
+	int birthYear;
+	struct person* next;
+}Person;
+
+Person* createPerson(const char*, const char*, int);
+void addToBeginning(Person**, const char*, const char*, int);
+void printList(Person*);
+void addToEnd(Person**, const char*, const char*, int);
+Person* findBySurname(Person*, const char*);
+void deletePerson(Person**, const char*);
+void addAfter(Person*,const char*, const char*, const char*, int);
+void addBefore(Person**, const char*, const char*, const char*, int);
+void sortBySurname(Person**);
+void writeFile(Person*, const char*);
+void readFile(Person**, const char*);
+
+int main() {
+	Person* list = NULL;																		//initializes an empty linked list 
+
+	addToBeginning(&list, "Ante", "Antic", 1976);
+	addToBeginning(&list, "Nika", "Nikic", 1980);
+	addToEnd(&list, "Petra", "Petric", 2000);
+	addToEnd(&list, "Ivan", "Ivic", 1993);
+	addAfter(list, "Petric", "Mate", "Matic", 2004);
+	addBefore(&list, "Ivic", "Bruno", "Brunic", 1989);
+	
+
+	printList(list);																			//prints the initial list
+
+	char needed[50];
+	printf("Which surname do you need to find? \n");											//asking user which person they want to find
+	scanf("%s", needed);
+
+
+	Person* find = findBySurname(list, needed);
+	if (find)
+		printf("Person found: %s	%s	%d\n", find->name, find->surname, find->birthYear);
+	else
+		printf("Person not found.\n");
+
+
+	char remove[50];
+	printf("Which person do you need to remove? \n");											//asking user which person they want to remove							
+	scanf("%s", remove);
+
+	deletePerson(&list, remove);
+
+	sortBySurname(&list);
+
+	printList(list);																			//prints the changed list
+
+	writeFile(list, "people.txt");
+	readFile(&list, "people.txt");
+
+	while (list != NULL) {																		//free allocated memory
+		Person* temp = list;
+		list = list->next;
+		free(temp);
+	}
+}
+
+Person* createPerson(const char* name, const char* surname, int year) {
+	Person* newPerson = (Person*)malloc(sizeof(Person));										//memory allocation
+
+	strcpy(newPerson->name, name);																//copies given string into structs name
+	strcpy(newPerson->surname, surname);
+	newPerson->birthYear = year;
+	newPerson->next = NULL;																		//sets next pointer to NULL, last person is not linked to anything else
+
+	return newPerson;
+}
+
+void addToBeginning(Person** head, const char* name, const char* surname, int year) {
+	Person* newPerson = createPerson(name, surname, year);
+	newPerson->next = *head;																	//points new person to current head of the list
+	*head = newPerson;																			//new person becomes the first element
+}
+
+void addToEnd(Person** head, const char* name, const char* surname, int year) {
+	Person* newPerson = createPerson(name, surname, year);
+
+	Person* temp = *head;
+	while (temp->next != NULL)
+		temp = temp->next;																		//temp moves through the list until it finds the element that points to NULL
+	temp->next = newPerson;
+}
+
+void printList(Person* head) {
+	Person* temp = head;
+	while (temp != NULL) {
+		printf("% s %s %d\n", temp->name, temp->surname, temp->birthYear);
+		temp = temp->next;
+	}
+}
+
+Person* findBySurname(Person* head, const char* surname) {
+	Person* temp = head;
+	while (temp != NULL) {
+		if (strcmp(temp->surname, surname) == 0)
+			return temp;
+		temp = temp->next;
+	}
+	return NULL;
+}
+
+void deletePerson(Person** head, const char* surname) {
+	Person* temp = *head;
+	Person* before = NULL;
+
+	while (temp != NULL && strcmp(temp->surname, surname) != 0) {
+		before = temp;
+		temp = temp->next;
+	}
+	if (before == NULL) {
+		*head = temp->next;
+	}
+	else {
+		before->next = temp->next;
+	}
+
+}
+//NEW CODE
+void addAfter(Person* head, const char* surnamePosition, const char* name, const char* surname, int year) {				
+	Person* position = findBySurname(head, surnamePosition);													//finds the person needed and takes their position in the list
+	Person* newPerson = createPerson(name, surname, year);
+
+	newPerson->next = position->next;																			//new person's pointer points to the person to which the person we added the new person after was pointing to
+	position->next = newPerson;																					//the found person's pointer points to the new person and a new person is successfully added
+
+}
+
+void addBefore(Person** head, const char* surnamePosition, const char* name, const char* surname, int year) {
+	Person* newPerson = createPerson(name, surname, year);
+	Person* temp = *head;
+
+	if (temp == NULL) {																							//if the list is empty, new person becomes the first and only element
+		temp = newPerson;
+		return;
+	}
+		
+	if (strcmp(temp->surname, surnamePosition) == 0) {															//if new person is being added before the first element of the list
+		newPerson->next = temp;
+		temp = newPerson;
+		return;
+	}
+
+	while (temp->next && strcmp(temp->next->surname, surnamePosition) != 0)										//if new person is being added somewhere in the middle of the list
+		temp = temp->next;
+	newPerson->next = temp->next;
+	temp->next = newPerson;
+}
+
+void sortBySurname(Person** head) {
+	int change;
+	Person* end = NULL;
+
+	do {
+		change = 0;
+		Person* temp = *head;
+
+		while (temp->next != end) {																			//goes through the whole list
+			if (strcmp(temp->surname, temp->next->surname) > 0) {											//compares ascii values of the first letters of surnames
+				char name[50], surname[50];
+				int year;
+
+				strcpy(name, temp->name);
+				strcpy(surname, temp->surname);
+				year = temp->birthYear;
+
+				strcpy(temp->name, temp->next->name);
+				strcpy(temp->surname, temp->next->surname);
+				temp->birthYear = temp->next->birthYear;
+
+				strcpy(temp->next->name, name);
+				strcpy(temp->next->surname, surname);
+				temp->next->birthYear = year;
+
+				change = 1;
+			}
+			temp = temp->next;
+		}
+		end = temp;
+	} while (change);
+}
+
+void writeFile(Person* head, const char* fileName) {
+	FILE* fp = fopen(fileName,"w");
+
+	if (!fp) {
+		printf("Error while trying to open file!\n");
+		return;
+	}
+
+	Person* temp = head;
+	while (temp) {
+		fprintf(fp, "%s %s %d\n", temp->name, temp->surname, temp->birthYear);
+		temp = temp->next;
+	}
+
+	fclose(fp);
+}
+
+void readFile(Person** head, const char* fileName) {
+	FILE* fp = fopen(fileName, "r");
+
+	if (!fp) {
+		printf("Error while trying to open file!\n");
+		return;
+	}
+
+}
+
+
+
 3.zdk
 A)  alokacija
     inicijalizacija vrijednosti
