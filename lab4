@@ -1,0 +1,58 @@
+koristit cemo sortirani unos
+triba koristit 4 liste (moze se rjesit i s 3)
+
+td _poly*Position
+
+td struct _poly{
+  int coeff;
+  int pow;
+  Position next;
+}
+
+head={coeff=0,pow=0,next=NULL}
+firstPoly = head;
+secondPoly = head;
+q = &head;
+
+1. korak
+otvoriti datoteku
+buffer[]
+string scanf: if (sscanf(buffer, "%d %d %n", &coefficient, &power, &n) != 2)     ovaj scanf cita dva po dva clana, if provjerava ima li paran broj clanova
+         
+2. korak
+moramo napraviti cvor u koji cemo uvrstavati elemente
+newEl = NULL;
+p = &firstPoly;
+if(p->next == NULL) => alokacija
+newEl->next = p->next;
+p->next = newEl;
+Position previous = p;
+p = p->next;
+ubacen prvi element
+nakon toga koristimo sortirani unos
+
+if(p != NULL && p->pow > power)                                            usporedujemo je li potencija iz liste veca od nove potencije koju je procitao sscanf
+alokacija
+newEl->next = p->next;
+p->next = newEl;
+Position previous = p;
+p = p->next;
+
+if(p != NULL && p->pow < power)                                            usporedujemo je li potencija iz liste manja od nove potencije koju je procitao sscanf
+alokacija
+newEl->next = p;
+prev->next = newEl;
+
+if(p != NULL && p->pow == power)                                           usporedujemo je li potencija iz liste jednaka novoj potenciji koju je procitao sscanf
+alokacija
+p->coeff += newEl->coeff;
+free newEl;
+provjera unutar provjere if(p->coeff == 0)
+                            prev->next = p->next;
+                            p->next = NULL;
+                            free (p);
+
+
+
+
+
