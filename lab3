@@ -216,6 +216,15 @@ void readFile(Person** head, const char* fileName) {
 		printf("Error while trying to open file!\n");
 		return;
 	}
+	char name[50];
+	char surname[50];
+	int year;
+
+	while (fscanf(fp, "%s %s %d", name, surname, &year) == 3) { 
+		addToEnd(head, name, surname, year);                      
+	}
+
+fclose(fp);
 
 }
 
