@@ -54,5 +54,157 @@ provjera unutar provjere if(p->coeff == 0)
 
 
 
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+
+
+typedef struct _poly* Position;                     //pointer to struct
+
+typedef struct _poly {
+    int coeff;
+    int pow;
+    Position next;
+} Poly;
+
+Position createEl(int coeff, int pow);
+int sortedInsert(Position head, int coeff, int pow);
+void printPoly(Position head);
+void readPoly(Position head, FILE* f);
+void addPoly(Position p1, Position p2, Position sum);
+void multiplyPoly(Position p1, Position p2, Position product);
+
+int main() {
+    Poly head1 = { 0, 0, NULL };                    //heads of lists
+    Poly head2 = { 0, 0, NULL };
+    Poly sumHead = { 0, 0, NULL };
+    Poly prodHead = { 0, 0, NULL };
+
+    FILE* f = fopen("polinomi.txt", "r");
+    if (!f) {
+        printf("Error opening file!\n");
+        return -1;
+    }
+
+    readPoly(&head1, f);                            //reads polynomials form the file, every row of the file is equal to one polynomial
+    readPoly(&head2, f);
+    fclose(f);
+
+    printf("First polynomial: ");
+    printPoly(head1.next);                          //prints the read polynomials
+    printf("Second polynomial: ");
+    printPoly(head2.next);
+
+
+    addPoly(head1.next, head2.next, &sumHead);      //adds polynomials and loads them into new list sum
+    printf("\nSum: ");
+    printPoly(sumHead.next);
+
+    multiplyPoly(head1.next, head2.next, &prodHead);    //multiplies polynomials and loads them into new list product
+    printf("Umnozak: ");
+    printPoly(prodHead.next);
+
+ 
+    return 0;
+}
+
+Position createEl(int coeff, int pow) {
+    Position newEl = (Position)malloc(sizeof(Poly));
+    if (!newEl) {
+        printf("Error allocating memory!\n");
+        return NULL;
+    }
+    newEl->coeff = coeff;
+    newEl->pow = pow;
+    newEl->next = NULL;
+    return newEl;
+}
+
+
+int sortedInsert(Position head, int coeff, int pow) {
+    Position prev = head;
+    Position curr = head->next;
+    Position newEl = NULL;
+
+  
+    if (curr == NULL) {                             //if the list is empty
+        newEl = createEl(coeff, pow);
+        if (!newEl) return -1;
+        newEl->next = curr;
+        prev->next = newEl;
+        return 0;
+    }
+
+    while (curr != NULL && curr->pow > pow) {       //compares powers and adds new element based on which one has bigger power
+        prev = curr;
+        curr = curr->next;
+    }
+
+    if (curr != NULL && curr->pow == pow) {         //if the new el has the same power as any el of the list, it adds them up
+        curr->coeff += coeff;
+        if (curr->coeff == 0) {                     //if two added up elements cancel each other out, it deletes the element with that power
+            prev->next = curr->next;
+            free(curr);
+        }
+        return 0;
+    }
+
+    newEl = createEl(coeff, pow);                   //else, add element normally
+    if (!newEl) return -1;
+
+    newEl->next = curr;
+    prev->next = newEl;
+    return 0;
+}
+
+void readPoly(Position head, FILE* f) {             //reads polynomials from the file
+    char buffer[1024];
+    int coeff, pow, n = 0;
+
+    if (!fgets(buffer, sizeof(buffer), f)) return;
+
+    char* p = buffer; //start of line pointer
+    while (sscanf(p, "%d %d %n", &coeff, &pow, &n) == 2) { //sscanf reads two numbers, %n returns how many symbols have been read
+        sortedInsert(head, coeff, pow);
+        p += n;       //move pointer for the number of read symbols
+    }
+}
+
+void printPoly(Position head) {
+    if (head == NULL) {
+        printf("0\n");
+        return;
+    }
+    while (head) {
+        printf("%d*x^%d", head->coeff, head->pow);
+        head = head->next;
+        if (head)
+            printf(" + ");
+    }
+    printf("\n");
+}
+
+void addPoly(Position p1, Position p2, Position sum) { //reads both lists and adds polynomials, stores them in a new list sum
+    while (p1 != NULL) {
+        sortedInsert(sum, p1->coeff, p1->pow);
+        p1 = p1->next;
+    }
+    while (p2 != NULL) {
+        sortedInsert(sum, p2->coeff, p2->pow);
+        p2 = p2->next;
+    }
+}
+
+void multiplyPoly(Position p1, Position p2, Position product) { //reads both lists and multiplies polynomials, stores them in a new list product
+    Position temp2 = p2;
+    while (p1 != NULL) {
+        temp2 = p2;
+        while (temp2 != NULL) {
+            sortedInsert(product, p1->coeff * temp2->coeff, p1->pow + temp2->pow);
+            temp2 = temp2->next;
+        }
+        p1 = p1->next;
+    }
+}
 
 
