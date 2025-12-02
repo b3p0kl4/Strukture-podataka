@@ -1,0 +1,131 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+
+typedef struct postfix {
+    double number;
+    struct postfix* next;
+} Postfix;
+
+double postfix(char* expression);                                          //functions declaration
+void push(Postfix** top, double number);
+double pop(Postfix** top);
+int isOperator(char ch);
+
+int isOperator(char ch) {                                                   //check if a character is an operator
+    return ch == '+' || ch == '-' || ch == '*' || ch == '/';
+}
+
+void push(Postfix** top, double number) {                                   //adds number to stack (prema last in first out principu)
+    Postfix* newNode = (Postfix*)malloc(sizeof(Postfix));
+    if (!newNode) {
+        printf("Error allocating memory.\n");
+        exit(1);
+    }
+    newNode->number = number;
+    newNode->next = *top;                                                   //new number points to current top
+    *top = newNode;                                                         //new number becomes new top
+}
+
+double pop(Postfix** top) {                                                 //takes numbers off of the stack
+    if (*top == NULL) {
+        printf("Error! Stack is empty.\n");                                 //checks if the stack is empty
+        exit(1);
+    }
+    Postfix* temp = *top;                                                   //temp points to the same spot as top
+    double number = temp->number;                                           //get the number that is on top
+    *top = temp->next;                                                      //top points to number under the previous top
+    free(temp);
+    return number;
+}
+
+double postfix(char* expression) {                                          //checks postfix expression
+    Postfix* stack = NULL;
+    int i = 0;
+
+    while (expression[i] != '\0') {                                         //goes trough the string
+
+        if (expression[i] == ' ') {                                         //"ignores" spaces
+            i++;
+            continue;
+        }
+
+        if (isdigit(expression[i])) {                                       //if the character is a digit
+            int num = 0;
+
+            while (isdigit(expression[i])) {
+                num = num * 10 + (expression[i] - '0');                     //for multidigit numbers
+                i++;
+            }
+
+            push(&stack, num);
+        }
+
+        else if (isOperator(expression[i])) {                               //if the character is an operator
+
+            int a = pop(&stack);                                            //takes 2 number off of the stack
+            int b = pop(&stack);
+
+            switch (expression[i]) {
+            case '+': 
+                push(&stack, b + a); 
+                break;
+            case '-': 
+                push(&stack, b - a); 
+                break;
+            case '*': 
+                push(&stack, b * a); 
+                break;
+            case '/':
+                if (a == 0) {
+                    printf("Error! Division by zero.\n");
+                    exit(1);
+                }
+                push(&stack, b / a);
+                break;
+            }
+
+            i++;                                                            //next character
+        }
+
+        else {
+            printf("Error! Invalid character in the expression.\n");        //invalid character check
+            exit(1);
+        }
+    }
+
+    double result = pop(&stack);                                            //result should be the only elemnt of the stack
+
+    if (stack != NULL) {
+        printf("Error! Invalid postfix expression.\n");
+        exit(1);
+    }
+
+    return result;
+}
+
+
+int main() {
+    FILE* file = fopen("postfix.txt", "r");
+    if (file == NULL) {
+        printf("Error loading the file\n");
+        return -1;
+    }
+
+    char expression[100];
+
+    if (fgets(expression, sizeof(expression), file) == NULL) {
+        printf("Error loading the file.\n");
+        fclose(file);
+        return -1;
+    }
+
+    double result = postfix(expression);
+
+    printf("Result: %.2f\n", result);
+
+    fclose(file);
+    return 0;
+}
