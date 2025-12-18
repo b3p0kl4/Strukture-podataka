@@ -1,0 +1,82 @@
+ZADATAK 9
+a) sve isto kao u 8 samo su manji brojevi s desne, a veci s lijeve strane
+b) rek fja replace(argument root)
+              provjera if(root==NULL)
+                            return 0;
+                      int prevVal=root->value;
+                      root->value=replace(root->left)+replace(root->right);
+                      return prevVal + root->value;
+c) najprije izbrisat postojece stablo
+   stvorit novo stablo s 10-15 brojeva u intervalu <10,90>, nasumicno ce se generirat funckijom srand
+   inorder ispis
+
+ZADATAK 10
+glavna datoteka drzava.txt, u njoj su pohranjeni parovi naziva drzava i imena dodatnih datoteka u kojoj se nalaze imena gradova i broj stanovnika tih gradova
+strukture: 
+
+struct countries{
+    char name;
+    Position next;
+    treePos root;              (struktura drzava mora imat vezu s gradovima)
+}
+
+struct cities{
+    char name;
+    treePos left;
+    treePos right;
+    int population;
+}
+
+a) i b) su potpuno isti samo se razlikuju po tome koje je strukture grad a koje drzava
+
+u mainu:
+Head = {.name="", .next=NULL};
+1) fopen(drzava.txt)
+  provjera je li datoteka otvorea
+  citanje s buffera: razbijamo na dva dijela(tokena), prvi token je ime drzave, a drugi putanja za gradove i njihove populacije
+  sortirani unos 1.uvjet: *stavili smo pokazivac p na head.  if(p->next == NULL)
+                                                                  alokacija
+                                                                  unos podataka (newEl->name=counrtyName)
+                                                                                 (newEl->root)
+                                                                                 (newEl->next=p->next)
+                                                                                 (p->next=newEl)
+                                                              fopen(zemlja.txt, "r")
+                                                                  buffer cita zemlju i broj stanovnika
+                                                                  sortiranje po broju stanovnika
+                                                                        1) rekurzivna funkcija
+                                                                              if(root==NULL)
+                                                                                    root=insert(root, population)
+                                                                        2)      if(root->population>population)
+                                                                                    root->left=insert(root->left,population)
+                                                                        3)      if(root->population<population)
+                                                                                    root->left=insert(root->right,population)
+                                                                            return root;
+                                                                  za sortiranje po nazivu grada opet koristit strcmp
+  
+                 2. uvjet: p!=NULL && strcmp (p->next->name > countryName)
+                                isto kao 1. uvjet
+                 3. uvjet p!=NULL && strcmp (p->next->name < countryName)
+                                p=p->next;
+                                isto kao 1.uvjet
+
+
+nakon unosa treba sve ispisati:
+      while(p!=NULL){
+          printf(p->name);
+          printTree(p->root);-----------------------> if(root!=NULL): printf(root->name); printTree(root->left); printTree(root->right)
+          p=p->next;
+      }
+
+za omoguciti korisniku putem tastature...
+      while(p!=NULL)
+      potraga za gradom
+        pretrazit stablo
+          ispis gradova po unosu (searchTree)
+            if(root==NULL)
+              return NULL;
+            if(root->population > population)
+              printf(root->name);
+            searchTree(root->right, population);
+            searchTree(root->left, population);
+
+na kraju oslobadaje memorije (brisanje stabla)
