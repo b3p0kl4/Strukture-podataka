@@ -1,0 +1,179 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Node {
+    int number;
+    struct Node* left;
+    struct Node* right;
+} Node;
+
+Node* createNode(int number) {                                                      //kreiranje cvora stabla
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    if (!newNode) {
+        printf("Error allocating memory.\n");
+        exit(1);
+    }
+    newNode->number = number;                                                       //postavljanje vrijednosti
+    newNode->left = NULL;                                                           //lijevo i desno dijete ne postoje
+    newNode->right = NULL;
+    return newNode;
+}
+
+Node* insert(Node* root, int number) {                                              //umetanje novih vrijednosti u stablo
+    if (root == NULL) {                                                             //ako je stablo prazno, novi cvor ce biti korijen
+        return createNode(number);
+    }
+    if (number < root->number) {                                                    //ako je element manji od korijena, umece se lijevo od korijena
+        root->left = insert(root->left, number);
+    }
+    else if (number > root->number) {                                               //ako je element veci od korijena, umece se desno od korijena
+        root->right = insert(root->right, number);
+    }
+    return root;
+}
+
+Node* search(Node* root, int el) {                                                  //pretrazivanje elemenata
+    if (root == NULL || root->number == el) {                                       //ako je stablo prazno ili je trazeni element korijen
+        return root;
+    }
+    if (el < root->number) {                                                        //ako je element manji od korijena, pretrazuje se lijeva strana
+        return search(root->left, el);
+    }
+    return search(root->right, el);                                                 //else pretrazuje desnu stranu
+}
+
+void inorder(Node* root) {                                                          
+    if (root != NULL) {
+        inorder(root->left);                                                        //inorder ispisuje lijevo dijete, korijen, pa desno dijete
+        printf("%d ", root->number);
+        inorder(root->right);
+    }
+}
+
+void preorder(Node* root) {
+    if (root != NULL) {
+        printf("%d ", root->number);                                                //preorder ispisuje korijen, lijevo, pa desno dijete
+        preorder(root->left);
+        preorder(root->right);
+    }
+}
+
+void postorder(Node* root) {
+    if (root != NULL) {
+        postorder(root->left);                                                      //postorder ispisuje lijevo dijete, desno dijete, pa korijen
+        postorder(root->right);
+        printf("%d ", root->number);
+    }
+}
+
+void levelOrder(Node* root) {
+    if (root == NULL) return;
+    Node* queue[100];
+    int front = 0, rear = 0;
+
+    queue[rear++] = root;
+    while (front < rear) {
+        Node* current = queue[front++];
+        printf("%d ", current->number);
+        if (current->left) queue[rear++] = current->left;
+        if (current->right) queue[rear++] = current->right;
+    }
+}
+
+Node* findMin(Node* root) {                                                          //trazenje najmanjeg elementa stabla, to je najljeviji cvor
+    while (root->left != NULL) {
+        root = root->left;
+    }
+    return root;
+}
+
+Node* deleteNode(Node* root, int el) {                                              //brisanje cvora
+    if (root == NULL) 
+        return root;
+    if (el < root->number) {                                                        //ako je element manji od korijena, pretrazuje se lijevo od korijena
+        root->left = deleteNode(root->left, el);
+    }
+    else if (el > root->number) {                                                   //ako je element veci od korijena, prewtrazuje se desno od korijena
+        root->right = deleteNode(root->right, el);
+    }
+    //kad je pronaden cvir koji treba obrisati
+    else {
+        if (root->left == NULL) {                                                   //ako cvor ima samo desno dijete
+            Node* temp = root->right;
+            free(root);
+            return temp;
+        }
+        else if (root->right == NULL) {                                             //ako cvor ima samo lijevo dijete
+            Node* temp = root->left;
+            free(root);
+            return temp;
+        }
+
+        Node* temp = findMin(root->right);                                          //ako covr ima oba djeteta, trazi se onaj najmanji element u desnom dijelu
+        root->number = temp->number;                                                //stavlja se njegovu vrijednost u trenutni cvor
+        root->right = deleteNode(root->right, temp->number);                        //brise se desna strana
+    }
+    return root;
+}
+
+int main() {
+    Node* root = NULL;
+    int choice, value;
+
+    do {
+        printf("\n1. Add element\n2. Find element\n3. Inorder print\n4. Preorder print\n5. Postorder print\n6. Level order print\n7. Delete element\n0. Exit\n");
+        printf("Insert choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+        case 1:
+            printf("Insert value: ");
+            scanf("%d", &value);
+            root = insert(root, value);
+            break;
+        case 2:
+            printf("Insert value to find: ");
+            scanf("%d", &value);
+            if (search(root, value)) {
+                printf("Element %d was found.\n", value);
+            }
+            else {
+                printf("Element %d was not found.\n", value);
+            }
+            break;
+        case 3:
+            printf("Inorder print: ");
+            inorder(root);
+            printf("\n");
+            break;
+        case 4:
+            printf("Preorder print: ");
+            preorder(root);
+            printf("\n");
+            break;
+        case 5:
+            printf("Postorder print: ");
+            postorder(root);
+            printf("\n");
+            break;
+        case 6:
+            printf("Level order print: ");
+            levelOrder(root);
+            printf("\n");
+            break;
+        case 7:
+            printf("Insert value to delete: ");
+            scanf("%d", &value);
+            root = deleteNode(root, value);
+            break;
+        case 0:
+            printf("Exit.\n");
+            break;
+        default:
+            printf("Error.\n");
+        }
+    } while (choice != 0);
+
+    return 0;
+}
